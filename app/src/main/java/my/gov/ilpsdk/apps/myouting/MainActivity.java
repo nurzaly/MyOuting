@@ -11,12 +11,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
 
-        home();
+        //home();
+        login();
     }
 
     public void home(){
         try {
             Intent k = new Intent(MainActivity.this, HomeActivity.class);
+            startActivity(k);
+            finish();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void login(){
+        try {
+            Intent k = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(k);
             finish();
         } catch(Exception e) {
