@@ -16,8 +16,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void home(){
         try {
-            Intent k = new Intent(MainActivity.this, HomeActivity2.class);
+            Intent k = new Intent(MainActivity.this, HomeActivity.class);
             startActivity(k);
+            finish();
         } catch(Exception e) {
             e.printStackTrace();
         }
