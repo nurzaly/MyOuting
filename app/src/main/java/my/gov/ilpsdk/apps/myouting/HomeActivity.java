@@ -3,6 +3,10 @@ package my.gov.ilpsdk.apps.myouting;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +22,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +62,7 @@ public class HomeActivity extends AppCompatActivity {
     private String date_out,date_return,time_out,time_return;
     private String ndp,tujuan;
     private Outing outing;
+    private SharedPreferences config;
 
 
     @Override
@@ -64,24 +70,32 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         recyclerView = findViewById(R.id.rvstatus);
+        config = getSharedPreferences(Constant.KEY_CONFIG,0);
         initToolbar();
         initComponent();
-        get_outing();
+
 
         date_out = DateUtils.getCurrentDate("YYYY-MM-dd");
         time_out = DateUtils.getCurrentDate("HH:mm:ss");
         date_return = DateUtils.getCurrentDate("YYYY-MM-dd");
         time_return = DateUtils.getCurrentDate("HH:mm:ss");
-        ndp = "123123";
+        ndp = config.getString(Constant.KEY_NDP,null);
+
         tujuan = "";
+
         ///outing = new Outing(ndp,date_out + " " + time_out,date_return + " " + time_return,"");
-//        Log.d(TAG, "onCreate: " + time_out);
+        // Log.d(TAG, "onCreate: " + time_out);
         //dialogDatePickerDark();
         //showCustomDialog();
+        get_outing();
+
+        ((TextView)findViewById(R.id.tv_user_name)).setText(config.getString(Constant.KEY_USER,null));
+        ((TextView)findViewById(R.id.tv_user_position)).setText(config.getString(Constant.KEY_COURSE,null));
     }
 
     private void get_outing(){
         AndroidNetworking.get(Constant.URL_GET_USER_OUTING)
+                .addQueryParameter("ndp",ndp)
                 .build()
                 .getAsObjectList(Outing.class, new ParsedRequestListener<List<Outing>>() {
                     @Override
@@ -160,9 +174,12 @@ public class HomeActivity extends AppCompatActivity {
 
                         try {
                             Log.d(TAG, "onResponse: " + response.getJSONObject("status"));
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        get_outing();
+
 
 //                        try {
 //                            new MaterialDialog.Builder(AssetsDetailsActivity.this)
@@ -354,17 +371,84 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
+    private void showDialogAbout() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // before
+        dialog.setContentView(R.layout.dialog_about);
+        dialog.setCancelable(true);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+        ((TextView) dialog.findViewById(R.id.tv_version)).setText("Version " + BuildConfig.VERSION_NAME);
+
+        ((View) dialog.findViewById(R.id.bt_getcode)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse("https://codecanyon.net/user/dream_space/portfolio"));
+                startActivity(i);
+            }
+        });
+
+        ((ImageButton) dialog.findViewById(R.id.bt_close)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+//        ((Button) dialog.findViewById(R.id.bt_rate)).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Tools.rateAction(AboutDialogMainAction.this);
+//            }
+//        });
+//
+//        ((Button) dialog.findViewById(R.id.bt_portfolio)).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Tools.openInAppBrowser(AboutDialogMainAction.this, "http://portfolio.dream-space.web.id/", false);
+//            }
+//        });
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+    }
+
+    public void logout(){
+        SharedPreferences.Editor editor = config.edit();
+        editor.remove(Constant.KEY_USER);
+        editor.remove(Constant.KEY_NDP);
+        editor.remove(Constant.KEY_COURSE);
+        editor.commit();
+        login();
+    }
+
+    private void login(){
+        Intent intent = new Intent(this,LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_search_setting, menu);
+        getMenuInflater().inflate(R.menu.menu_home, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-        } else {
+        if (item.getItemId() == R.id.action_about) {
+            showDialogAbout();
+        }
+        else if(item.getItemId() == R.id.action_logout){
+            logout();
+        }
+        else {
             Toast.makeText(getApplicationContext(), item.getTitle(), Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);

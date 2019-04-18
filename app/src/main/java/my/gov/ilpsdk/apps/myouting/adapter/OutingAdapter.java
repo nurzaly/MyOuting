@@ -59,7 +59,6 @@ public class OutingAdapter extends RecyclerView.Adapter<OutingAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull OutingAdapter.ViewHolder h, final int position) {
-        Log.d("test", "onBindViewHolder: " + filter_items.size());
         final Outing c = filter_items.get(position);
          h.description.setText(c.getDescription());
         try {

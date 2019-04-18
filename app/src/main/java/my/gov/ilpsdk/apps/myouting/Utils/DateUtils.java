@@ -32,7 +32,7 @@ public class DateUtils {
 
     public static String getCurrentDate(String mDateFormat) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(mDateFormat);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        //dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date today = Calendar.getInstance().getTime();
         return dateFormat.format(today);
     }
